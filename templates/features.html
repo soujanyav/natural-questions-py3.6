@@ -15,61 +15,78 @@ limitations under the License.
 -->
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-  <title>Natural Questions {{ dataset }} Set Example</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>Natural Questions {{ dataset }} Set Example</title>
 </head>
 <body>
-  <!-- Style rules for our UI -->
-  <link href="static/nq.css" rel="stylesheet">
+<!-- Style rules for our UI -->
+<link href="static/nq.css" rel="stylesheet">
 
-  <br>
-  <table width=100%>
+<br>
+<table width=100%>
     <tr>
-      <td valign=middle class=td-title>
-        <span class=section-title>Natural Questions {{ dataset }} Set Example</span>
-      </td>
+        <td valign=middle class=td-title>
+            <span class=section-title>Natural Questions {{ dataset }} Set Example</span>
+        </td>
     </tr>
-  </table>
+</table>
 
-  <table border=2 cellpadding=2 cellspacing=2>
+<table border=2 cellpadding=2 cellspacing=2>
     <tr>
-      <td>URL</td>
-      <td><code>{{ example.url }}</code></td>
+        <td>URL</td>
+        <td><code>{{ example.url }}</code></td>
     </tr>
     <tr>
-      <td>Question</td>
-      <td>{{ example.question_text }}</td>
+        <td>Question</td>
+        <td>{{ example.question_text }}</td>
     </tr>
     <tr>
-      <td>Candidate With Answer</td>
-      <td>{{ example.candidates_with_answer }}</td>
+        <td>Candidate With Answer</td>
+        <td>{{ example.candidates_with_answer }}</td>
     </tr>
     <tr>
-      <td>Short Answer</td>
-      <td>
-        <table>
-          {% for short_answer in example.short_answers_texts %}
-          <tr>
-            <td>{{ short_answer }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-      </td>
+        <td>Short Answer</td>
+        <td>
+            <table>
+                {% for short_answer in example.short_answers_texts %}
+                    <tr>
+                        <td>{{ short_answer }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </td>
     </tr>
-  </table>
-  <table border=2 cellpadding=2 cellspacing=2>
+
+{#added predictions for all systems#}
+    {% for predictions in example.predictions_scores_list %}
+        <tr>
+            <td>System</td>
+            <td>
+                <table>
+                    {% for prediction in predictions %}
+                        <tr>
+                            <td>{{ prediction }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
+
+</table>
+<table border=2 cellpadding=2 cellspacing=2>
     <tr>
-      <th>Index</th>
-      <th>Contains Answer</th>
-      <th>Top Level Long Answer Candidate</th>
+        <th>Index</th>
+        <th>Contains Answer</th>
+        <th>Top Level Long Answer Candidate</th>
     </tr>
     {% for candidate in example.candidates %}
-    <tr class={{ candidate.style }}>
-      <td>{{ candidate.index }}</td>
-      <td>{{ candidate.contains_answer }}</td>
-      <td>{{ candidate.contents }}</td>
-    </tr>
+        <tr class={{ candidate.style }}>
+            <td>{{ candidate.index }}</td>
+            <td>{{ candidate.contains_answer }}</td>
+            <td>{{ candidate.contents }}</td>
+        </tr>
     {% endfor %}
-  </table>
+</table>
 </body>
 </html>

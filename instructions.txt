@@ -2,4 +2,4 @@
 
 2. nq_browser does not require wsgiref, as it is part of python3.x
 
-3. set Gzipped flag to False, as was encountering codec issue with the gz file.
+3. add data to the data/ folder, set Gzipped flag to False, as was encountering codec issue with the gz file.

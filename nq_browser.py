@@ -35,17 +35,18 @@ import jinja2
 import numpy as np
 import tornado.web
 import tornado.wsgi
-
+from text_utils import exact_match_score
+import random
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('nq_jsonl', None,
+flags.DEFINE_string('nq_jsonl', "data/v1.0-simplified_nq-dev-all.jsonl",
                     'Path to jsonlines file containing Natural Questions.')
 flags.DEFINE_boolean('gzipped', False, 'Whether the jsonlines are gzipped.')
-flags.DEFINE_enum('dataset', 'train', ['train', 'dev'],
+flags.DEFINE_enum('dataset', 'dev', ['train', 'dev'],
                   'Whether this is training data or dev data.')
 flags.DEFINE_integer('port', 8080, 'Port to listen on.')
-flags.DEFINE_integer('max_examples', 200,
+flags.DEFINE_integer('max_examples', 50,
                      'Max number of examples to load in the browser.')
 flags.DEFINE_enum('mode', 'all_examples',
                   ['all_examples', 'long_answers', 'short_answers'],
@@ -157,6 +158,24 @@ class Example(object):
         else:
             self.short_answers_texts = []
             self.short_answers_text = ''
+
+        # load in predictions
+        # TODO load data format
+        self.predictions_text_list = [
+            "system1",
+            "system2",
+            "system3",
+            "system4"
+        ]
+
+        self.exact_match_list = [
+            exact_match_score(i, self.short_answers_text) for i in self.predictions_text_list
+        ]
+
+        self.predictions_scores_list = [
+            ' \n Exact Match: '.join([self.predictions_text_list[i], str(self.exact_match_list[i])]) for i in
+            range(len(self.predictions_text_list))
+        ]
 
         self.candidates = self.get_candidates(
             self.json_example['long_answer_candidates'])
@@ -289,9 +308,13 @@ class MainHandler(tornado.web.RequestHandler):
         self.tmpl = self.env.get_template('index.html')
         self.examples = examples
 
+        self.length_list = np.arange(
+            len(random.sample(list(examples.items()), 1)[0][1].predictions_scores_list)).tolist()
+        print(self.length_list)
+
     def get(self):
         res = self.tmpl.render(
-            dataset=FLAGS.dataset.capitalize(), examples=self.examples.values())
+            dataset=FLAGS.dataset.capitalize(), examples=self.examples.values(), length_list=self.length_list)
         self.write(res)
 
 
@@ -300,6 +323,9 @@ class HtmlHandler(tornado.web.RequestHandler):
 
     def initialize(self, examples):
         self.examples = examples
+        self.length_list = np.arange(
+            len(random.sample(list(examples.items()), 1)[0][1].predictions_scores_list)).tolist()
+        print(self.length_list)
 
     def get(self):
         example_id = str(self.get_argument('example_id'))
@@ -313,11 +339,13 @@ class FeaturesHandler(tornado.web.RequestHandler):
         self.env = jinja2_env
         self.tmpl = self.env.get_template('features.html')
         self.examples = examples
+        self.length_list = np.arange(len(random.sample(list(examples.items()), 1)[0][1].predictions_scores_list)).tolist()
+        print(self.length_list)
 
     def get(self):
         example_id = str(self.get_argument('example_id'))
         res = self.tmpl.render(
-            dataset=FLAGS.dataset.capitalize(), example=self.examples[example_id])
+            dataset=FLAGS.dataset.capitalize(), example=self.examples[example_id], length_list=self.length_list)
         self.write(res)
 
 
@@ -355,8 +383,8 @@ class NqServer(object):
 
 
 def main(unused_argv):
-    #with open(FLAGS.nq_jsonl) as fileobj:
-    with codecs.open(FLAGS.nq_jsonl, "r",encoding='utf-8', errors='ignore') as fileobj:
+    # with open(FLAGS.nq_jsonl) as fileobj:
+    with codecs.open(FLAGS.nq_jsonl, "r", encoding='utf-8', errors='ignore') as fileobj:
         examples = load_examples(fileobj)
 
     print("Finished loading the file")

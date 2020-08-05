@@ -142,3 +142,28 @@ def simplify_nq_example(nq_example):
     raise ValueError("Incorrect number of tokens.")
 
   return simplified_nq_example
+
+import re
+import string
+
+
+# function for the reader model answer validation
+def exact_match_score(prediction, ground_truth):
+    return _normalize_answer(prediction) == _normalize_answer(ground_truth)
+
+
+def _normalize_answer(s):
+    def remove_articles(text):
+        return re.sub(r'\b(a|an|the)\b', ' ', text)
+
+    def white_space_fix(text):
+        return ' '.join(text.split())
+
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return ''.join(ch for ch in text if ch not in exclude)
+
+    def lower(text):
+        return text.lower()
+
+    return white_space_fix(remove_articles(remove_punc(lower(s))))
